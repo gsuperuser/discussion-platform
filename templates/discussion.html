@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Discussion Board</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .review-box { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; }
+    .reply-box { border: 1px solid #ccc; padding: 10px; margin-left: 30px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2 class="mt-5">Discussion Board</h2>
+  <p>
+    Logged in as: <strong>{{ session['username'] }}</strong> |
+    <a href="{{ url_for('logout') }}">Logout</a> |
+    <a href="{{ url_for('export_csv') }}">Export CSV</a>
+  </p>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-warning">
+        {% for msg in messages %}
+          <div>{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <h4>Post a Review</h4>
+  <form method="POST" action="{{ url_for('post_review') }}">
+    <div class="mb-3">
+      <textarea name="text" class="form-control" placeholder="Write your review here..." required></textarea>
+    </div>
+    <!-- No parent_id for a main review -->
+    <input type="hidden" name="parent_id" value="">
+    <button type="submit" class="btn btn-success">Post Review</button>
+  </form>
+
+  <hr>
+  <h4>All Reviews</h4>
+  {% for review in reviews %}
+    <div class="review-box">
+      <p>
+        <strong>ID: {{ review.id }}</strong> |
+        Posted by: {{ review.user.username }} 
+      </p>
+      <p>{{ review.text }}</p>
+      <p>
+        Upvotes: {{ review.upvote_count }}
+        <form method="POST" action="{{ url_for('upvote', review_id=review.id) }}" style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-outline-primary">Upvote</button>
+        </form>
+      </p>
+      <!-- Reply button and form -->
+      <button class="btn btn-sm btn-secondary" onclick="toggleReplyForm({{ review.id }})">Reply</button>
+      <div id="reply-form-{{ review.id }}" style="display:none; margin-top:10px;">
+        <form method="POST" action="{{ url_for('post_review') }}">
+          <div class="mb-3">
+            <textarea name="text" class="form-control" placeholder="Write your reply here..." required></textarea>
+          </div>
+          <input type="hidden" name="parent_id" value="{{ review.id }}">
+          <button type="submit" class="btn btn-primary btn-sm">Post Reply</button>
+        </form>
+      </div>
+      <!-- Display replies -->
+      {% for reply in review.replies.order_by(Review.id).all() %}
+         <div class="reply-box">
+           <p>
+             <strong>ID: {{ review.id }}.{{ loop.index }}</strong> |
+             Posted by: {{ reply.user.username }}
+           </p>
+           <p>{{ reply.text }}</p>
+           <p>
+             Upvotes: {{ reply.upvote_count }}
+             <form method="POST" action="{{ url_for('upvote', review_id=reply.id) }}" style="display:inline;">
+               <button type="submit" class="btn btn-sm btn-outline-primary">Upvote</button>
+             </form>
+           </p>
+         </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+<script>
+function toggleReplyForm(reviewId) {
+    var form = document.getElementById('reply-form-' + reviewId);
+    form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+}
+</script>
+</body>
+</html>
