@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-# Replace with a secure key in production
+# Use environment variable SECRET_KEY for security; fallback for local testing.
 app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret')
 
 # Use DATABASE_URL from Render if available; otherwise, fallback to SQLite.
@@ -44,7 +44,6 @@ class Upvote(db.Model):
 # ----------------------------
 # Routes
 # ----------------------------
-
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -160,4 +159,5 @@ if __name__ == '__main__':
     # Create DB tables if they do not exist.
     with app.app_context():
         db.create_all()
+    # Run the app; remove debug=True in production.
     app.run(debug=True)
