@@ -144,20 +144,18 @@ def export_csv():
     cw.writerow(['review_id', 'text', 'upvotes', 'comments'])
     main_reviews = Review.query.filter_by(parent_id=None).all()
     for review in main_reviews:
-        # Get replies in order and assign numbering
         replies = review.replies.order_by(Review.id).all()
-        # Format replies as "parentID.index: reply text"
         comments = " | ".join([f"{review.id}.{idx+1}: {reply.text}" for idx, reply in enumerate(replies)])
         cw.writerow([review.id, review.text, review.upvote_count, comments])
     si.seek(0)
     return send_file(si, mimetype="text/csv", as_attachment=True, download_name="reviews.csv")
 
 # ----------------------------
-# Run the app
+# Create Tables Before the First Request
 # ----------------------------
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
 if __name__ == '__main__':
-    # Create DB tables if they do not exist.
-    with app.app_context():
-        db.create_all()
-    # Run the app; remove debug=True in production.
     app.run(debug=True)
