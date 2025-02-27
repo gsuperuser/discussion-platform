@@ -50,7 +50,6 @@ def index():
         return redirect(url_for('discussion'))
     return redirect(url_for('login'))
 
-# Registration page
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -67,7 +66,6 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-# Login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -83,24 +81,20 @@ def login():
             return redirect(url_for('login'))
     return render_template('login.html')
 
-# Logout
 @app.route('/logout')
 def logout():
     session.clear()
     flash('Logged out successfully.')
     return redirect(url_for('login'))
 
-# Discussion board – shows reviews and their replies
 @app.route('/discussion')
 def discussion():
     if 'user_id' not in session:
         flash('Please login first.')
         return redirect(url_for('login'))
-    # Get main reviews (those without a parent)
     reviews = Review.query.filter_by(parent_id=None).all()
     return render_template('discussion.html', reviews=reviews)
 
-# Post a review or reply (if parent_id is provided, it’s a reply)
 @app.route('/post_review', methods=['POST'])
 def post_review():
     if 'user_id' not in session:
@@ -114,7 +108,6 @@ def post_review():
     db.session.commit()
     return redirect(url_for('discussion'))
 
-# Upvote a review/reply – ensures one upvote per user per review.
 @app.route('/upvote/<int:review_id>', methods=['POST'])
 def upvote(review_id):
     if 'user_id' not in session:
@@ -131,9 +124,6 @@ def upvote(review_id):
     db.session.commit()
     return redirect(url_for('discussion'))
 
-# Export main reviews with replies into CSV.
-# The CSV columns are: review_id, text, upvotes, comments.
-# For replies, we assign IDs as parent.review_id.reply_number (e.g., 1.1, 1.2, etc.)
 @app.route('/export_csv')
 def export_csv():
     if 'user_id' not in session:
@@ -151,10 +141,9 @@ def export_csv():
     return send_file(si, mimetype="text/csv", as_attachment=True, download_name="reviews.csv")
 
 # ----------------------------
-# Create Tables Before the First Request
+# Initialize Database Tables
 # ----------------------------
-@app.before_first_request
-def create_tables():
+with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
