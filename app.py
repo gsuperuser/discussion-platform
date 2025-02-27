@@ -4,6 +4,7 @@ from io import StringIO
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from io import StringIO, BytesIO
 
 app = Flask(__name__)
 # Use environment variable SECRET_KEY for security; fallback for local testing.
@@ -138,8 +139,10 @@ def export_csv():
         comments = " | ".join([f"{review.id}.{idx+1}: {reply.text}" for idx, reply in enumerate(replies)])
         cw.writerow([review.id, review.text, review.upvote_count, comments])
     si.seek(0)
-    return send_file(si, mimetype="text/csv", as_attachment=True, download_name="reviews.csv")
-
+    output = BytesIO(si.getvalue().encode('utf-8'))
+    output.seek(0)
+    
+    return send_file(output, mimetype="text/csv", as_attachment=True, download_name="reviews.csv")
 # ----------------------------
 # Initialize Database Tables
 # ----------------------------
