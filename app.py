@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 # Replace with a secure key in production
-app.secret_key = 'your_secret_key'
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret')
 
 # Use DATABASE_URL from Render if available; otherwise, fallback to SQLite.
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///discussion.db')
