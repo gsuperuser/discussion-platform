@@ -93,7 +93,7 @@ def discussion():
         flash('Please login first.')
         return redirect(url_for('login'))
     reviews = Review.query.filter_by(parent_id=None).all()
-    return render_template('discussion.html', reviews=reviews)
+    return render_template('discussion.html', reviews=reviews, Review=Review)
 
 @app.route('/post_review', methods=['POST'])
 def post_review():
